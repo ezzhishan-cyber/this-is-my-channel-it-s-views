@@ -48,3 +48,11 @@ Designed specifically for [@PlotTwistStudios-j4t](https://youtube.com/@plottwist
    - Turnkey Dreamina Canvas & Node-based zero-credit execution guide.
    - Seedream (Ultra-Realism image nodes) + Seedance 2.5 (dynamic video nodes).
    - Zero-credit configuration safeguards & shot-by-shot node cards for seamless infinite loops.
+
+6. **[ZERO_HUMAN_AUTOMATION_GUIDE.md](file:///home/runner/work/this-is-my-channel-it-s-views/this-is-my-channel-it-s-views/ZERO_HUMAN_AUTOMATION_GUIDE.md)**
+   - 100% Hands-Free & Zero-Human Automation manual for 24/7 background production.
+   - Architecture walkthrough comparing REST Gateway Autopilot vs. Headless Browser Daemon.
+
+7. **Autonomous Scripts:**
+   - **`dreamina_autopilot.py`**: Hands-free REST gateway engine (connects to your Dreamina subscription, renders Seedream + Seedance 2.5, downloads MP4s with zero human intervention).
+   - **`dreamina_headless_bot.py`**: Persistent headless Chromium Playwright daemon that operates Dreamina Canvas headlessly in the background.
