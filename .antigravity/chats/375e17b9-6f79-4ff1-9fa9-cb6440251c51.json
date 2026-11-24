@@ -3,6 +3,31 @@
   "name": "This is my channel it’s views",
   "createdAt": "2026-11-24T11:36:07.292Z",
   "filename": "375e17b9-6f79-4ff1-9fa9-cb6440251c51.json",
-  "geminiStarted": false,
-  "messages": []
+  "geminiStarted": true,
+  "messages": [
+    {
+      "id": "96baa91d-22ca-49f5-bdae-536dbd92c4b7",
+      "role": "user",
+      "content": "This is my channel it’s views is too low I want to make a series consist of 20 reels in an idea related to channel niche ,in hype ultra realism with seedance 2.5 has unskiped hook ,addicted color saturation and sfx sounds ,each movement from shoot to shoot must be from camera prespictive in choosing the start of the next shoot as a result of the last shoot with smooth unseen translation or may be each shoot is extend to previous ,vo dialogues ,I want to hit 20 k view on each reel 1- choose story idea 2- detailes prompt. For each ep ,character ref lock and prompts 3-background music prompt ,each reel end with cliff hanger and loop with the first frame  ultra retintion script",
+      "status": "cancelled",
+      "model": "gemini-3.8-flash-high",
+      "client_type": "gemini-bridge",
+      "parent_message_id": null,
+      "created_at": "2026-11-24T11:36:09.770Z",
+      "sender": "ios",
+      "is_cancelled": true
+    },
+    {
+      "id": "44f1aa73-d1fd-46e3-aeb0-be83aed80572",
+      "role": "user",
+      "content": "https://youtube.com/@plottwiststudios-j4t?si=lS7rTNjKjXquniFS",
+      "status": "pending",
+      "model": "gemini-3.8-flash-high",
+      "client_type": "gemini-bridge",
+      "parent_message_id": null,
+      "created_at": "2026-11-24T11:36:21.283Z",
+      "sender": "ios",
+      "is_cancelled": false
+    }
+  ]
 }
