@@ -43,3 +43,8 @@ Designed specifically for [@PlotTwistStudios-j4t](https://youtube.com/@plottwist
    - Negative prompt matrices to prevent character morphing.
    - Voice cloning & Suno/Udio audio prompt templates.
    - YouTube Shorts & Reels algorithmic distribution checklist (titles, pinned comments, pacing).
+
+5. **[DREAMINA_CANVAS_NODES_PIPELINE.md](file:///home/runner/work/this-is-my-channel-it-s-views/this-is-my-channel-it-s-views/DREAMINA_CANVAS_NODES_PIPELINE.md)**
+   - Turnkey Dreamina Canvas & Node-based zero-credit execution guide.
+   - Seedream (Ultra-Realism image nodes) + Seedance 2.5 (dynamic video nodes).
+   - Zero-credit configuration safeguards & shot-by-shot node cards for seamless infinite loops.
