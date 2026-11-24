@@ -1,0 +1,13 @@
+# Generated outputs & video reels
+generated_reels/
+*.mp4
+*.png
+*.jpg
+
+# Browser session caches
+dreamina_session_profile/
+
+# Python cache
+__pycache__/
+*.pyc
+.cache/

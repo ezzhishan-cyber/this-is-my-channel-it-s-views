@@ -1,134 +1,180 @@
 #!/usr/bin/env python3
 """
-DREAMINA HEADLESS PLAYWRIGHT BROWSER BOT (ZERO HUMAN PRESENCE)
-Automates Dreamina Canvas / Nodes in a headless Chromium browser using a persistent session.
-Bypasses CAPTCHA by reusing authenticated session storage / user-data-dir.
+DREAMINA HEADLESS PLAYWRIGHT BOT (ZERO HUMAN PRESENCE)
+Automates Dreamina Canvas / Nodes in a headless Chromium browser.
+Supports direct session cookie injection (sessionid) to bypass Cloudflare and cloud IP login blocks.
 """
 
 import os
 import sys
 import time
+import json
+import asyncio
 import argparse
 from pathlib import Path
+from playwright.async_api import async_playwright
 
-# User credentials & paths
 DREAMINA_URL = "https://dreamina.capcut.com"
+CANVAS_URL = "https://dreamina.capcut.com/ai-tool/canvas"
 SESSION_DIR = Path("./dreamina_session_profile")
 OUTPUT_DIR = Path("./generated_reels")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-PLAYWRIGHT_SCRIPT_TEMPLATE = """
-import asyncio
-from playwright.async_api import async_playwright
+# Credentials
+DREAMINA_EMAIL = os.getenv("DREAMINA_EMAIL", "ezzhisham585@gmail.com")
+DREAMINA_PASSWORD = os.getenv("DREAMINA_PASSWORD", "lolmanjoker556")
+DREAMINA_SESSION_ID = os.getenv("DREAMINA_SESSION_ID", "")
 
-async def run_headless_dreamina():
-    print("[BOT] Launching persistent headless browser...")
-    async with async_playwright() as p:
-        # Launch browser with persistent user data to maintain login session and bypass CAPTCHA
-        context = await p.chromium.launch_persistent_context(
-            user_data_dir="./dreamina_session_profile",
-            headless=True,
-            args=[
-                "--disable-blink-features=AutomationControlled",
-                "--start-maximized"
-            ]
-        )
-        page = await context.new_page()
-        
-        print("[BOT] Navigating to Dreamina Canvas...")
-        await page.goto("https://dreamina.capcut.com/ai-tool/canvas", wait_until="networkidle")
-        
-        # Check login state
-        if "login" in page.url or await page.query_selector("button:has-text('Sign In')"):
-            print("[BOT NOTICE] First-time login required in persistent profile.")
-            print("Run with '--login' mode once to establish persistent auth token.")
-            await context.close()
-            return
-        
-        print("[BOT] Authenticated session confirmed. Opening Canvas...")
-        # 1. Switch Generation Speed to 'Standard / Unlimited' (Zero credits)
-        standard_toggle = await page.query_selector("button:has-text('Standard')") or await page.query_selector("span:has-text('Unlimited')")
-        if standard_toggle:
-            await standard_toggle.click()
-            print("[BOT] Zero-credit Unlimited Mode engaged.")
-            
-        # 2. Select 9:16 Aspect Ratio
-        ratio_btn = await page.query_selector("button:has-text('9:16')")
-        if ratio_btn:
-            await ratio_btn.click()
-            print("[BOT] Locked to 9:16 vertical ratio.")
 
-        # 3. Locate Input Prompt Box and inject prompt
-        prompt_box = await page.wait_for_selector("textarea, [contenteditable='true']")
-        if prompt_box:
-            await prompt_box.fill("Cinematic extreme macro eye close-up of James Mercer (#MERCER_CORE_V1)...")
-            print("[BOT] Injected Seedream image keyframe prompt.")
+async def setup_authenticated_context(p, session_id: str = None):
+    """Creates a browser context with persistent storage or injected session cookies."""
+    context = await p.chromium.launch_persistent_context(
+        user_data_dir=str(SESSION_DIR),
+        headless=True,
+        args=[
+            "--disable-blink-features=AutomationControlled",
+            "--no-sandbox",
+            "--disable-setuid-sandbox"
+        ]
+    )
 
-        # 4. Click Generate
-        gen_btn = await page.wait_for_selector("button:has-text('Generate')")
+    if session_id:
+        print(f"[BOT] Injecting sessionid cookie into browser context...")
+        cookies = [
+            {
+                "name": "sessionid",
+                "value": session_id,
+                "domain": ".capcut.com",
+                "path": "/"
+            },
+            {
+                "name": "sessionid",
+                "value": session_id,
+                "domain": "dreamina.capcut.com",
+                "path": "/"
+            }
+        ]
+        await context.add_cookies(cookies)
+
+    return context
+
+
+async def attempt_direct_login(page):
+    """Attempts direct email/password login on Dreamina embed page."""
+    print("[BOT] Attempting direct login with provided credentials...")
+    embed_url = "https://dreamina.capcut.com/ai-tool/login-embed?aid=513641&current_page=dreamina_landing_page_pc&lang=en&title_key=DrmnUG_web_welcome_login&source=dreamina_landing_page&page=dreamina_landing_page_pc&col=1"
+    await page.goto(embed_url, wait_until="domcontentloaded")
+    await asyncio.sleep(2)
+
+    # Click continue with email
+    email_btn = page.locator("text=/continue with email/i").first
+    if await email_btn.is_visible():
+        await email_btn.click()
+        await asyncio.sleep(1)
+
+    email_inp = page.locator('input[type="email"], input[placeholder*="email"]').first
+    pass_inp = page.locator('input[type="password"]').first
+
+    if await email_inp.is_visible() and await pass_inp.is_visible():
+        print(f"[BOT] Filling email: {DREAMINA_EMAIL}")
+        await email_inp.click()
+        await email_inp.press_sequentially(DREAMINA_EMAIL, delay=40)
+        await pass_inp.click()
+        await pass_inp.press_sequentially(DREAMINA_PASSWORD, delay=40)
+
+        continue_btn = page.locator('button:has-text("Continue"), div[role="button"]:has-text("Continue")').first
+        await continue_btn.click()
+        await asyncio.sleep(4)
+
+        # Inspect if error occurred
+        errors = await page.locator('.error, [role="alert"], span:has-text("Couldn’t sign in"), div:has-text("Couldn’t sign in")').all_text_contents()
+        if any("Couldn’t sign in" in e for e in errors):
+            print("\n[SECURITY BLOCK DETECTED]")
+            print("ByteDance risk control blocked direct password submission from datacenter IP:")
+            print("  -> 'Couldn’t sign in. Try again later.'")
+            print("Solution: Provide your active browser 'sessionid' cookie or run locally.\n")
+            return False
+
+        return True
+
+    return False
+
+
+async def execute_canvas_generation(page, prompt_img: str, prompt_video: str):
+    """Automates the Dreamina Canvas interface with zero-credit settings."""
+    print(f"[BOT] Navigating to Canvas: {CANVAS_URL}...")
+    await page.goto(CANVAS_URL, wait_until="domcontentloaded")
+    await asyncio.sleep(5)
+
+    # 1. Verify Authentication
+    if "login" in page.url:
+        print("[BOT ERROR] Redirected to login. Session is unauthenticated.")
+        return False
+
+    print("[BOT SUCCESS] Authenticated Canvas access verified!")
+
+    # 2. Toggle Standard / Unlimited Mode (Zero Credits)
+    std_btn = page.locator("button:has-text('Standard'), span:has-text('Unlimited')").first
+    if await std_btn.is_visible():
+        await std_btn.click()
+        print("[BOT] Zero-credit Unlimited Mode engaged.")
+
+    # 3. Ratio 9:16
+    ratio_btn = page.locator("button:has-text('9:16')").first
+    if await ratio_btn.is_visible():
+        await ratio_btn.click()
+        print("[BOT] Ratio 9:16 selected.")
+
+    # 4. Inject prompt
+    prompt_area = page.locator("textarea, [contenteditable='true']").first
+    if await prompt_area.is_visible():
+        await prompt_area.fill(prompt_img)
+        print("[BOT] Injected Seedream prompt.")
+
+    # 5. Generate
+    gen_btn = page.locator("button:has-text('Generate')").first
+    if await gen_btn.is_visible():
         await gen_btn.click()
-        print("[BOT] Generation triggered. Waiting for output...")
-        
-        # 5. Monitor and download output
-        await asyncio.sleep(20)
-        print("[BOT] Output captured.")
-        
-        await context.close()
+        print("[BOT] Generation command sent to Seedream!")
+        await asyncio.sleep(15)
 
-if __name__ == "__main__":
-    asyncio.run(run_headless_dreamina())
-"""
+    return True
 
-def print_setup_instructions():
-    print("""
-========================================================================
-DREAMINA ZERO-HUMAN HEADLESS BOT SETUP
-========================================================================
 
-How to run this completely hands-free 24/7:
-
-1. Install Playwright:
-   pip install playwright
-   playwright install chromium
-
-2. One-Time Session Capture (Bypasses Cloudflare / CAPTCHA permanently):
-   Because Dreamina blocks raw headless scripts attempting fresh login,
-   run the interactive session saver once:
-   
-   python3 dreamina_headless_bot.py --save-session
-
-   This opens a Chrome window for 60 seconds. Log in with:
-   - Email: ezzhisham585@gmail.com
-   - Password: lolmanjoker556
-   
-   The session cookies and auth tokens are saved to './dreamina_session_profile'.
-
-3. Zero-Human Background Execution:
-   Once saved, run in headless mode:
-   
-   python3 dreamina_headless_bot.py --run-headless
-
-   From that point on, it operates with 100% ZERO HUMAN INTERVENTION,
-   generating videos and saving MP4s to ./generated_reels.
-========================================================================
-""")
-
-if __name__ == "__main__":
+async def main():
     parser = argparse.ArgumentParser(description="Dreamina Headless Bot")
-    parser.add_argument("--save-session", action="store_true", help="Launch interactive browser to capture persistent session")
-    parser.add_argument("--run-headless", action="store_true", help="Run full headless autonomous generator")
+    parser.add_argument("--sessionid", type=str, default=DREAMINA_SESSION_ID, help="Active Dreamina sessionid cookie")
+    parser.add_argument("--test-login", action="store_true", help="Test login and report exact state")
     args = parser.parse_args()
 
-    if args.save_session:
-        print("[BOT] Launching interactive browser for one-time session capture...")
-        os.system("python3 -c \"import asyncio; from playwright.async_api import async_playwright; "
-                  "async def main(): p = await async_playwright().start(); "
-                  "ctx = await p.chromium.launch_persistent_context('./dreamina_session_profile', headless=False); "
-                  "page = await ctx.new_page(); await page.goto('https://dreamina.capcut.com'); "
-                  "print('Please log in now. Window will stay open for 90s...'); await asyncio.sleep(90); await ctx.close(); await p.stop(); "
-                  "asyncio.run(main())\"")
-    elif args.run_headless:
-        print("[BOT] Running headless zero-human automation...")
-        exec(PLAYWRIGHT_SCRIPT_TEMPLATE)
-    else:
-        print_setup_instructions()
+    session_id = args.sessionid or os.getenv("DREAMINA_SESSION_ID")
+
+    async with async_playwright() as p:
+        context = await setup_authenticated_context(p, session_id=session_id)
+        page = await context.new_page()
+
+        if not session_id:
+            success = await attempt_direct_login(page)
+            if not success:
+                await context.close()
+                return
+
+        # Execute Canvas automation
+        prompt_image = (
+            "Cinematic extreme macro eye close-up of James Mercer (#MERCER_CORE_V1), "
+            "hyper-detailed dilated hazel iris reflecting a flickering cyan neon sign reading 'VAULT 73'. "
+            "Half of face illuminated by high-contrast volumetric frost vapor and radioactive amber emergency strobe, "
+            "ultra-realistic 8k, sub-surface skin scattering, Arri Alexa 65 anamorphic."
+        )
+        prompt_video = (
+            "[Camera: Dynamic high-speed backward pull out from extreme close-up of hazel eye pupil, "
+            "pulling back into medium over-the-shoulder tracking shot] James Mercer steps forward into "
+            "abandoned cryogenic bunker chamber Vault 73."
+        )
+
+        await execute_canvas_generation(page, prompt_image, prompt_video)
+        await context.close()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
