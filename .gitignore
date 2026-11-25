@@ -3,6 +3,8 @@ generated_reels/
 *.mp4
 *.png
 *.jpg
+!assets/*.jpg
+!assets/*.png
 
 # Browser session caches
 dreamina_session_profile/
