@@ -1,0 +1,4 @@
+{
+  "compose": "services:\n  freellmapi:\n    image: ghcr.io/tashfeenahmed/freellmapi:v0.8.4\n    restart: unless-stopped\n    environment:\n      NODE_ENV: production\n      PORT: ${PORT}\n      ENCRYPTION_KEY: ${ENCRYPTION_KEY}\n    expose:\n      - 3001\n    volumes:\n      - freellmapi-data:/app/server/data\n    healthcheck:\n      test:\n        [\n          \"CMD\",\n          \"node\",\n          \"-e\",\n          \"fetch('http://127.0.0.1:3001/api/ping').then((res) => { if (!res.ok) process.exit(1); }).catch(() => process.exit(1));\"\n        ]\n      interval: 30s\n      timeout: 5s\n      start_period: 15s\n      retries: 3\n\nvolumes:\n  freellmapi-data:",
+  "config": "[variables]\nmain_domain = \"${domain}\"\nencryption_key = \"${hash:64}\"\n\n[config]\n[[config.domains]]\nserviceName = \"freellmapi\"\nport = 3001\nhost = \"${main_domain}\"\n\n[config.env]\nNODE_ENV = \"production\"\nPORT = \"3001\"\nENCRYPTION_KEY = \"${encryption_key}\""
+}

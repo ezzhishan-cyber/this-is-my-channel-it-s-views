@@ -16,6 +16,18 @@
       "created_at": "2026-11-25T15:32:17.624Z",
       "sender": "ios",
       "is_cancelled": false
+    },
+    {
+      "id": "2b4a86b7-dfb2-46fd-995c-e4593b8d5d29",
+      "role": "user",
+      "content": "ewogICJjb21wb3NlIjogInNlcnZpY2VzOlxuICBmcmVlbGxtYXBpOlxuICAgIGltYWdlOiBnaGNyLmlvL3Rhc2hmZWVuYWhtZWQvZnJlZWxsbWFwaTp2MC44LjRcbiAgICByZXN0YXJ0OiB1bmxlc3Mtc3RvcHBlZFxuICAgIGVudmlyb25tZW50OlxuICAgICAgTk9ERV9FTlY6IHByb2R1Y3Rpb25cbiAgICAgIFBPUlQ6ICR7UE9SVH1cbiAgICAgIEVOQ1JZUFRJT05fS0VZOiAke0VOQ1JZUFRJT05fS0VZfVxuICAgIGV4cG9zZTpcbiAgICAgIC0gMzAwMVxuICAgIHZvbHVtZXM6XG4gICAgICAtIGZyZWVsbG1hcGktZGF0YTovYXBwL3NlcnZlci9kYXRhXG4gICAgaGVhbHRoY2hlY2s6XG4gICAgICB0ZXN0OlxuICAgICAgICBbXG4gICAgICAgICAgXCJDTURcIixcbiAgICAgICAgICBcIm5vZGVcIixcbiAgICAgICAgICBcIi1lXCIsXG4gICAgICAgICAgXCJmZXRjaCgnaHR0cDovLzEyNy4wLjAuMTozMDAxL2FwaS9waW5nJykudGhlbigocmVzKSA9PiB7IGlmICghcmVzLm9rKSBwcm9jZXNzLmV4aXQoMSk7IH0pLmNhdGNoKCgpID0+IHByb2Nlc3MuZXhpdCgxKSk7XCJcbiAgICAgICAgXVxuICAgICAgaW50ZXJ2YWw6IDMwc1xuICAgICAgdGltZW91dDogNXNcbiAgICAgIHN0YXJ0X3BlcmlvZDogMTVzXG4gICAgICByZXRyaWVzOiAzXG5cbnZvbHVtZXM6XG4gIGZyZWVsbG1hcGktZGF0YToiLAogICJjb25maWciOiAiW3ZhcmlhYmxlc11cbm1haW5fZG9tYWluID0gXCIke2RvbWFpbn1cIlxuZW5jcnlwdGlvbl9rZXkgPSBcIiR7aGFzaDo2NH1cIlxuXG5bY29uZmlnXVxuW1tjb25maWcuZG9tYWluc11dXG5zZXJ2aWNlTmFtZSA9IFwiZnJlZWxsbWFwaVwiXG5wb3J0ID0gMzAwMVxuaG9zdCA9IFwiJHttYWluX2RvbWFpbn1cIlxuXG5bY29uZmlnLmVudl1cbk5PREVfRU5WID0gXCJwcm9kdWN0aW9uXCJcblBPUlQgPSBcIjMwMDFcIlxuRU5DUllQVElPTl9LRVkgPSBcIiR7ZW5jcnlwdGlvbl9rZXl9XCIiCn0= services:\n  freellmapi:\n    image: ghcr.io/tashfeenahmed/freellmapi:v0.8.4\n    restart: unless-stopped\n    environment:\n      NODE_ENV: production\n      PORT: ${PORT}\n      ENCRYPTION_KEY: ${ENCRYPTION_KEY}\n    expose:\n      - 3001\n    volumes:\n      - freellmapi-data:/app/server/data\n    healthcheck:\n      test:\n        [\n          \"CMD\",\n          \"node\",\n          \"-e\",\n          \"fetch('http://127.0.0.1:3001/api/ping').then((res) => { if (!res.ok) process.exit(1); }).catch(() => process.exit(1));\"\n        ]\n      interval: 30s\n      timeout: 5s\n      start_period: 15s\n      retries: 3\n\nvolumes:\n  freellmapi-data: [variables]\nmain_domain = \"${domain}\"\nencryption_key = \"${hash:64}\"\n\n[config]\n[[config.domains]]\nserviceName = \"freellmapi\"\nport = 3001\nhost = \"${main_domain}\"\n\n[config.env]\nNODE_ENV = \"production\"\nPORT = \"3001\"\nENCRYPTION_KEY = \"${encryption_key}\"",
+      "status": "pending",
+      "model": "gemini-3.8-flash-high",
+      "client_type": "gemini-bridge",
+      "parent_message_id": null,
+      "created_at": "2026-11-25T15:39:15.684Z",
+      "sender": "ios",
+      "is_cancelled": false
     }
   ]
 }
