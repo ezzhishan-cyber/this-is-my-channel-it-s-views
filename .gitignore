@@ -13,3 +13,17 @@ dreamina_session_profile/
 __pycache__/
 *.pyc
 .cache/
+
+# Node & dependencies
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+.env
+.env.*
+!.env.example
+*.db
+*.db-wal
+*.db-shm
+.encryption-key
+
