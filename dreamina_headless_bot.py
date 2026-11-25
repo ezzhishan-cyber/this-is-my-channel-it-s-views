@@ -100,6 +100,40 @@ async def attempt_direct_login(page):
     return False
 
 
+async def dismiss_modals(page):
+    """Dismisses welcome modals, tutorial overlays, and announcement dialogs."""
+    print("[BOT] Checking for modal overlays or announcements...")
+    await page.keyboard.press("Escape")
+    await asyncio.sleep(0.5)
+
+    selectors = [
+        ".lv-modal-close",
+        "[aria-label='Close']",
+        "button:has-text('Got it')",
+        "button:has-text('OK')",
+        "button:has-text('I know')",
+        "button:has-text('Dismiss')",
+        "button:has-text('Close')",
+        "button:has-text('Skip')",
+        "button:has-text('Next')",
+        ".arco-modal-close-icon",
+        "[class*='close-icon']",
+        "[class*='closeBtn']",
+        "[class*='modal-close']"
+    ]
+
+    for sel in selectors:
+        try:
+            elements = await page.locator(sel).all()
+            for el in elements:
+                if await el.is_visible():
+                    print(f"[BOT] Closing modal overlay via '{sel}'...")
+                    await el.click(force=True)
+                    await asyncio.sleep(0.5)
+        except Exception:
+            pass
+
+
 async def execute_canvas_generation(page, prompt_img: str, prompt_video: str):
     """Automates the Dreamina Canvas interface with zero-credit settings."""
     print(f"[BOT] Navigating to Canvas: {CANVAS_URL}...")
@@ -113,30 +147,47 @@ async def execute_canvas_generation(page, prompt_img: str, prompt_video: str):
 
     print("[BOT SUCCESS] Authenticated Canvas access verified!")
 
+    # Dismiss any welcome / update modals
+    await dismiss_modals(page)
+    await page.screenshot(path="canvas_loaded.png")
+
     # 2. Toggle Standard / Unlimited Mode (Zero Credits)
-    std_btn = page.locator("button:has-text('Standard'), span:has-text('Unlimited')").first
-    if await std_btn.is_visible():
-        await std_btn.click()
-        print("[BOT] Zero-credit Unlimited Mode engaged.")
+    try:
+        std_btn = page.locator("button:has-text('Standard'), span:has-text('Unlimited')").first
+        if await std_btn.is_visible():
+            await std_btn.click(force=True)
+            print("[BOT] Zero-credit Unlimited Mode engaged.")
+    except Exception as e:
+        print(f"[BOT NOTICE] Standard mode toggle: {e}")
 
     # 3. Ratio 9:16
-    ratio_btn = page.locator("button:has-text('9:16')").first
-    if await ratio_btn.is_visible():
-        await ratio_btn.click()
-        print("[BOT] Ratio 9:16 selected.")
+    try:
+        ratio_btn = page.locator("button:has-text('9:16')").first
+        if await ratio_btn.is_visible():
+            await ratio_btn.click(force=True)
+            print("[BOT] Ratio 9:16 selected.")
+    except Exception as e:
+        print(f"[BOT NOTICE] Ratio 9:16 select: {e}")
 
     # 4. Inject prompt
     prompt_area = page.locator("textarea, [contenteditable='true']").first
     if await prompt_area.is_visible():
         await prompt_area.fill(prompt_img)
         print("[BOT] Injected Seedream prompt.")
+    else:
+        print("[BOT NOTICE] Searching for alternative prompt input fields...")
+        prompt_fallback = page.locator("input[placeholder*='prompt' i], [placeholder*='describe' i]").first
+        if await prompt_fallback.is_visible():
+            await prompt_fallback.fill(prompt_img)
+            print("[BOT] Injected Seedream prompt via fallback input.")
 
     # 5. Generate
     gen_btn = page.locator("button:has-text('Generate')").first
     if await gen_btn.is_visible():
-        await gen_btn.click()
+        await gen_btn.click(force=True)
         print("[BOT] Generation command sent to Seedream!")
         await asyncio.sleep(15)
+        await page.screenshot(path="canvas_generating.png")
 
     return True
 
@@ -153,11 +204,20 @@ async def main():
         context = await setup_authenticated_context(p, session_id=session_id)
         page = await context.new_page()
 
-        if not session_id:
-            success = await attempt_direct_login(page)
-            if not success:
-                await context.close()
-                return
+        # Check if already authenticated via persistent context
+        print("[BOT] Checking session status on Canvas...")
+        await page.goto(CANVAS_URL, wait_until="domcontentloaded")
+        await asyncio.sleep(4)
+
+        if "login" in page.url or await page.locator("text=/sign in/i").first.is_visible():
+            print("[BOT] Session not logged in. Attempting login...")
+            if not session_id:
+                success = await attempt_direct_login(page)
+                if not success:
+                    await context.close()
+                    return
+        else:
+            print("[BOT SUCCESS] Session is already authenticated from persistent profile!")
 
         # Execute Canvas automation
         prompt_image = (
