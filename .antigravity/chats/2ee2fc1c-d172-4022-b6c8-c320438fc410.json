@@ -28,6 +28,30 @@
       "created_at": "2026-11-25T15:39:15.684Z",
       "sender": "ios",
       "is_cancelled": false
+    },
+    {
+      "id": "d7843549-c248-4e8f-94b8-e25b2a42870d",
+      "role": "agent",
+      "content": "The Dokploy configuration and `v0.8.4` deployment have been applied and verified.\n\n---\n\n### What Was Configured & Executed\n\n1. **Saved Template Files**:\n   Created the deployment files under [`dokploy-template/`](https://github.com/ezzhishan-cyber/this-is-my-channel-it-s-views/blob/main/dokploy-template):\n   - [`docker-compose.yml`](https://github.com/ezzhishan-cyber/this-is-my-channel-it-s-views/blob/main/dokploy-template/docker-compose.yml): Service definition with image `ghcr.io/tashfeenahmed/freellmapi:v0.8.4`, port `3001`, volume mount, and health check.\n   - [`template.toml`](https://github.com/ezzhishan-cyber/this-is-my-channel-it-s-views/blob/main/dokploy-template/template.toml): Dokploy domain and variable interpolation mapping (`${main_domain}`, `${encryption_key}`).\n   - [`dokploy-bundle.json`](https://github.com/ezzhishan-cyber/this-is-my-channel-it-s-views/blob/main/dokploy-template/dokploy-bundle.json) & [`dokploy-bundle.b64`](https://github.com/ezzhishan-cyber/this-is-my-channel-it-s-views/blob/main/dokploy-template/dokploy-bundle.b64): Ready-to-import bundle for the Dokploy UI (*Compose Service ➔ Advanced ➔ Import*).\n\n2. **Executed `v0.8.4` Container**:\n   - Pulled `ghcr.io/tashfeenahmed/freellmapi:v0.8.4`.\n   - Updated [`freellmapi/docker-compose.yml`](https://github.com/ezzhishan-cyber/this-is-my-channel-it-s-views/blob/main/freellmapi/docker-compose.yml) and recreated the container.\n   - Container `freellmapi-freellmapi-1` is active with port `3001` mapped to `0.0.0.0:3001`.\n\n---\n\n### Verification & Local URLs\n\n| Item | Details |\n| :--- | :--- |\n| **Image** | `ghcr.io/tashfeenahmed/freellmapi:v0.8.4` |\n| **Status** | Running & Healthy |\n| **Web Dashboard** | [http://localhost:3001](http://localhost:3001) or `http://127.0.0.1:3001` (HTTP 200 OK) |\n| **Health API** | `http://127.0.0.1:3001/api/ping` (`{\"status\":\"ok\"}`) |\n| **First-Run Setup Code** | `R9PMM6HZJA` |\n\nAll modifications and configuration files are saved.",
+      "status": "completed",
+      "model": "gemini-3.8-flash-high",
+      "client_type": "gemini-bridge",
+      "parent_message_id": "2b4a86b7-dfb2-46fd-995c-e4593b8d5d29",
+      "created_at": "2026-11-25T15:41:52.868Z",
+      "sender": "macOS",
+      "is_cancelled": false
+    },
+    {
+      "id": "3d9fd1ab-91bb-4ab5-a079-e285b63b6424",
+      "role": "user",
+      "content": "I attached an image: .antigravity/uploads/photo-1795621345-1.jpg.\n\nFix",
+      "status": "pending",
+      "model": "gemini-3.8-flash-high",
+      "client_type": "gemini-bridge",
+      "parent_message_id": null,
+      "created_at": "2026-11-25T15:42:40.122Z",
+      "sender": "ios",
+      "is_cancelled": false
     }
   ]
 }
